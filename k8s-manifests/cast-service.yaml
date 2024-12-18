@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cast-service
+  labels:
+    app: cast-service
+spec:
+  type: NodePort
+  ports:
+    - port: 8000  # Port du service interne
+      targetPort: 8000  # Port utilisé par le conteneur
+      protocol: TCP
+      nodePort: 30002
+  selector:
+    app: cast-service

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cast-service
+  labels:
+    app: cast-service
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cast-service
+  template:
+    metadata:
+      labels:
+        app: cast-service
+        tier: backend
+    spec:
+      containers:
+        - name: cast-service
+          image: newemira/cast-service:latest
+          args:
+            - uvicorn
+            - app.main:app
+            - --reload
+            - --host
+            - 0.0.0.0
+            - --port
+            - "8000"
+          env:
+            - name: DATABASE_URI
+              value: postgresql://cast_db_username:cast_db_password@cast_db/cast_db_dev
+          ports:
+            - containerPort: 8000
+          volumeMounts:
+            - name: cast-service-volume
+              mountPath: /app/
+      volumes:
+        - name: cast-service-volume
+          persistentVolumeClaim:
+            claimName: cast-service-pvc
+          

@@ -12,3 +12,9 @@ RUN pip install -r /app/requirements.txt \
     && rm -rf /root/.cache/pip
 
 COPY . /app/
+
+# Exposer le port d'écoute de l'application
+EXPOSE 8000
+
+# Commande pour lancer l'application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]

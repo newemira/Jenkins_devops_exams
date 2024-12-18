@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cast-db
+  labels:
+    app: cast-db
+    tier: database
+spec:
+  serviceName: "cast-db"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cast-db
+  template:
+    metadata:
+      labels:
+        app: cast-db
+    spec:
+      containers: 
+        - name: cast-db
+          env:
+            - name: POSTGRES_DB
+              value: cast_db_dev
+            - name: POSTGRES_PASSWORD
+              value: cast_db_password
+            - name: POSTGRES_USER
+              value: cast_db_username
+          image: postgres:12.1-alpine
+          ports:
+            - containerPort: 5432
+              name: cast-postgres
+          volumeMounts:
+            - name: cast-postgres-data
+              mountPath: /var/lib/postgresql/data/
+      volumes:
+        - name: cast-postgres-data
+          persistentVolumeClaim:
+            claimName: cast-db-pvc

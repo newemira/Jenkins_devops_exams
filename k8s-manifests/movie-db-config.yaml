@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: movie-db-config
+data:
+   postgresql.conf: |
+    # Configuration PostgreSQL personnalisée
+    max_connections = 100
+    shared_buffers = 128MB
+    log_timezone = 'UTC'
+   pg_hba.conf: |
+    # TYPE  DATABASE        USER            ADDRESS                 METHOD
+    host    all             all             0.0.0.0/0               trust
+ 

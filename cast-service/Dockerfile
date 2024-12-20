@@ -2,7 +2,8 @@ FROM python:3.8-slim
 
 WORKDIR /app
 
-COPY ./requirements.txt /app/requirements.txt
+# Copier tous les fichiers du répertoire local vers le répertoire de travail
+COPY . /app/
 
 RUN apt-get update \
     && apt-get install gcc -y \
@@ -11,7 +12,6 @@ RUN apt-get update \
 RUN pip install -r /app/requirements.txt \
     && rm -rf /root/.cache/pip
 
-COPY . /app/
 
 # Définir le chemin Python
 ENV PYTHONPATH=/app

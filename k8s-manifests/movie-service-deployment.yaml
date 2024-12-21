@@ -28,14 +28,14 @@ spec:
             - name: CAST_SERVICE_HOST_URL
               value: http://cast_service:8000/api/v1/casts/
             - name: DATABASE_URI
-              value: postgresql://movie_db_username:movie_db_password@movie_db/movie_db_dev
+              value: postgresql://movie_db_username:movie_db_password@movie-db-service/movie_db_dev
           image: newemira/movie-service:latest
           name: movie-service
           ports:
             - containerPort: 8000
           resources: {}
           volumeMounts:
-            - mountPath: /app/
+            - mountPath: /data/
               name: movie-service-pv
       restartPolicy: Always
       volumes:

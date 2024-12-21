@@ -5,11 +5,10 @@ metadata:
   labels:
     app: cast-service
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 8000  # Port du service interne
       targetPort: 8000  # Port utilisé par le conteneur
       protocol: TCP
-      nodePort: 30002
   selector:
     app: cast-service

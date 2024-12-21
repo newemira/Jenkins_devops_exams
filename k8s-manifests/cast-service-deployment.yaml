@@ -21,7 +21,7 @@ spec:
           image: newemira/cast-service:latest
           env:
             - name: DATABASE_URI
-              value: postgresql://cast_db_username:cast_db_password@cast_db/cast_db_dev
+              value: postgresql://cast_db_username:cast_db_password@cast-db-service/cast_db_dev
           ports:
             - containerPort: 8000
           volumeMounts:

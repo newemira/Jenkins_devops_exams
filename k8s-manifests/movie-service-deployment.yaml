@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: movie-service 
+  name: movie-service
   labels:
     app: movie-service
     tier: backend
@@ -14,31 +14,20 @@ spec:
     metadata:
       labels:
         app: movie-service
+        tier: backend
     spec:
       containers:
-        - args:
-            - uvicorn
-            - movie.app.main:app
-            - --reload
-            - --host
-            - 0.0.0.0
-            - --port
-            - "8000"
+        - name: movie-service
+          image: newemira/movie-service:latest
           env:
-            - name: CAST_SERVICE_HOST_URL
-              value: http://cast_service:8000/api/v1/casts/
             - name: DATABASE_URI
               value: postgresql://movie_db_username:movie_db_password@movie-db-service/movie_db_dev
-          image: newemira/movie-service:latest
-          name: movie-service
           ports:
             - containerPort: 8000
-          resources: {}
           volumeMounts:
-            - mountPath: /data/
-              name: movie-service-pv
-      restartPolicy: Always
+            - name: movie-service-volume
+              mountPath: /data/
       volumes:
-        - name: movie-service-pv
+        - name: movie-service-volume
           persistentVolumeClaim:
             claimName: movie-service-pvc

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: movie-service
 spec:
-  type: ClusterIP
+  type: NodePort
   ports:
     - port: 8000  # Port du service interne
       targetPort: 8000  # Port utilisé par le conteneur

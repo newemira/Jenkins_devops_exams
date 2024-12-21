@@ -3,9 +3,8 @@ kind: Ingress
 metadata:
   name: app-ingress
   namespace: dev
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
+  ingressClassName: traefik
   rules:
   - host: app.devops-emi.cloudns.ch
     http:

@@ -15,11 +15,11 @@ spec:
           service:
             name: movie-service
             port:
-              number: 8000
+              number: 8002
       - path: /api/v1/casts/docs
         pathType: Prefix
         backend:
           service:
             name: cast-service
             port:
-              number: 8000
+              number: 8001

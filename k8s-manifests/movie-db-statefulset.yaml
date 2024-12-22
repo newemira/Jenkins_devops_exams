@@ -27,7 +27,13 @@ spec:
         volumeMounts:
         - name: movie-db-data
           mountPath: /var/lib/postgresql/data
+        - name: cast-db-config
+          mountPath: /etc/postgresql/
+          readOnly: true
       volumes:
       - name: movie-db-data
         persistentVolumeClaim:
           claimName: movie-db-pvc
+      - name: cast-db-config
+        configMap:
+          name: cast-db-config

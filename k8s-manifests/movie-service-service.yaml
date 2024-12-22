@@ -7,7 +7,7 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 8000  # Port du service interne
+    - port: 8002  # Port du service interne
       targetPort: 8000  # Port utilisé par le conteneur
       protocol: TCP
   selector:

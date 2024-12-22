@@ -32,7 +32,13 @@ spec:
           volumeMounts:
             - name: cast-postgres-data
               mountPath: /var/lib/postgresql/data/
+            - name: cast-db-config
+              mountPath: /etc/postgresql/
+              readOnly: true
       volumes:
         - name: cast-postgres-data
           persistentVolumeClaim:
             claimName: cast-db-pvc
+        - name: cast-db-config
+          configMap:
+            name: cast-db-config

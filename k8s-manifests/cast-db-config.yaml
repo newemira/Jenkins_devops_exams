@@ -8,6 +8,8 @@ data:
     max_connections = 100
     shared_buffers = 128MB
     log_timezone = 'UTC'
+    hba_file = '/etc/postgresql/pg_hba.conf'
+    config_file = '/etc/postgresql/postgresql.conf'
    pg_hba.conf: |
     # TYPE  DATABASE        USER            ADDRESS                 METHOD
     host    all             all             0.0.0.0/0               trust

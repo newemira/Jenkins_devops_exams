@@ -1,0 +1,59 @@
+{{- range $service := (list "movieService" "castService") }}
+{{- $serviceValues := index $.Values $service }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ if eq $serviceValues.name "movie-service" }}movie-db{{ else }}cast-db{{ end }}
+  labels:
+    app: {{ if eq $serviceValues.name "movie-service" }}movie-db{{ else }}cast-db{{ end }}
+spec:
+  serviceName: {{ if eq $serviceValues.name "movie-service" }}movie-db-service{{ else }}cast-db-service{{ end }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ if eq $serviceValues.name "movie-service" }}movie-db{{ else }}cast-db{{ end }}
+  template:
+    metadata:
+      labels:
+        app: {{ if eq $serviceValues.name "movie-service" }}movie-db{{ else }}cast-db{{ end }}
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:12
+          env:
+            - name: POSTGRES_USER
+              value: {{ $serviceValues.database.username }}
+            - name: POSTGRES_PASSWORD
+              value: {{ $serviceValues.database.password }}
+            - name: POSTGRES_DB
+              value: {{ $serviceValues.database.name }}
+          ports:
+            - containerPort: 5432
+              name: postgres
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ if eq $serviceValues.name "movie-service" }}movie-db-service{{ else }}cast-db-service{{ end }}
+  labels:
+    app: {{ if eq $serviceValues.name "movie-service" }}movie-db{{ else }}cast-db{{ end }}
+spec:
+  ports:
+    - port: 5432
+      name: postgres
+  clusterIP: None
+  selector:
+    app: {{ if eq $serviceValues.name "movie-service" }}movie-db{{ else }}cast-db{{ end }}
+---
+{{- end }}

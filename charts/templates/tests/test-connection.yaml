@@ -1,9 +1,11 @@
+{{- range $service := (list "movieService" "castService") }}
+{{- $serviceValues := index $.Values $service }}
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ include "fastapiapp.fullname" . }}-test-connection"
+  name: "{{ $serviceValues.name }}-test-connection"
   labels:
-    {{- include "fastapiapp.labels" . | nindent 4 }}
+    app: {{ $serviceValues.name }}
   annotations:
     "helm.sh/hook": test
 spec:
@@ -11,5 +13,7 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args: ['{{ include "fastapiapp.fullname" . }}:{{ .Values.service.port }}/api/v1/checkapi']
+      args: ['{{ $serviceValues.name }}:{{ $serviceValues.service.port }}/']
   restartPolicy: Never
+---
+{{- end }}

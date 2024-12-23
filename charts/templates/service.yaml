@@ -1,16 +1,19 @@
+{{- range $service := (list "movieService" "castService") }}
+{{- $serviceValues := index $.Values $service }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "fastapiapp.fullname" . }}
+  name: {{ $serviceValues.name }}
   labels:
-    {{- include "fastapiapp.labels" . | nindent 4 }}
+    app: {{ $serviceValues.name }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ $serviceValues.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
-      nodePort: {{ .Values.service.nodePort }}
+    - port: {{ $serviceValues.service.port }}
+      targetPort: {{ $serviceValues.service.targetPort }}
       protocol: TCP
       name: http
   selector:
-    {{- include "fastapiapp.selectorLabels" . | nindent 4 }}
+    app: {{ $serviceValues.name }}
+---
+{{- end }}

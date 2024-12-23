@@ -1,85 +1,60 @@
-# Default values for fastapiapp.
+# Default values for movie-cast-services.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
-replicaCount: 3
+movieService:
+  name: movie-service
+  replicaCount: 1
+  image:
+    repository: newemira/movie-service
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8002
+    targetPort: 8000
+  database:
+    name: movie_db_dev
+    username: movie_db_username
+    password: movie_db_password
 
-image:
-  repository: sajjadhz/fastapiapp
-  pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+castService:
+  name: cast-service
+  replicaCount: 1
+  image:
+    repository: newemira/cast-service
+    pullPolicy: IfNotPresent
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 8001
+    targetPort: 8000
+  database:
+    name: cast_db_dev
+    username: cast_db_username
+    password: cast_db_password
 
-imagePullSecrets: 
-  - name: "regcred"
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # Annotations to add to the service account
-  annotations: {}
-  # The name of the service account to use.
-  # If not set and create is true, a name is generated using the fullname template
-  name: ""
-
-podAnnotations: {}
-
-podSecurityContext: {}
-  # fsGroup: 2000
-
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
-service:
-  type: NodePort
-  port: 80
-  nodePort: 30007  
-  targetPort: 8000
+postgresql:
+  enabled: true
+  architecture: standalone
+  auth:
+    enablePostgresUser: true
+    postgresPassword: "postgres"
+    database: movie_db_dev
 
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
+  enabled: true
+  className: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: dev-strip-prefix@kubernetescrd
   hosts:
-    - host: chart-example.local
+    - host: app.devops-emi.cloudns.ch
       paths:
-        - path: /
-          pathType: ImplementationSpecific
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
+        - path: /api/v1/movies
+          pathType: Prefix
+          service: movie-service
+          port: 8002
+        - path: /api/v1/casts
+          pathType: Prefix
+          service: cast-service
+          port: 8001

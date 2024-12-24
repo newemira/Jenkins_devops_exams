@@ -58,3 +58,7 @@ ingress:
           pathType: Prefix
           service: cast-service
           port: 8001
+  tls:
+    enabled: true
+    clusterIssuer: letsencrypt-prod
+    secretName: app-tls-secret

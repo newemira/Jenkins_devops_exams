@@ -5,8 +5,14 @@ metadata:
   name: movie-cast-ingress
   labels:
     app: movie-cast-ingress
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" # Remplacez par l'issuer approprié
 spec:
   ingressClassName: traefik
+  tls:
+  - hosts:
+    - app.devops-emi.cloudns.ch
+    secretName: app-tls-secret # Nom du secret où sera stocké le certificat
   rules:
     - host: "app.devops-emi.cloudns.ch"
       http:

@@ -1,60 +1,25 @@
 pipeline {
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred') // Identifiants Docker Hub
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-cred')
         MOVIE_IMAGE = "newemira/movie-service"
         CAST_IMAGE = "newemira/cast-service"
-        VERSION = "${BUILD_NUMBER}" // Utilisation du numéro de build comme version
-        GIT_CREDENTIALS = credentials('github-cred') // Identifiants GitHub
-        ARGOCD_TOKEN = credentials('argocd-auth-token')  // Token pour ArgoCD
-        ARGOCD_SERVER = "https://localhost:8082/applications"  // URL de votre serveur ArgoCD
-        KUBECONFIG = credentials("config") // Récupération du kubeconfig pour les déploiements Kubernetes
+        VERSION = "${BUILD_NUMBER}"
+        ARGOCD_TOKEN = credentials('argocd-auth-token')
+        ARGOCD_SERVER = "localhost:8082"
     }
 
-    agent any // Jenkins choisira un agent disponible
+    agent any
 
     stages {
-        stage('Docker Build'){
+        stage('Docker Build & Push'){
             steps {
                 script {
                     sh '''
-                    docker rm -f jenkins || true
-                    # Construction de l'image Movie
-                    docker build -t $DOCKERHUB_CREDENTIALS/$MOVIE_IMAGE:$VERSION Jenkins_devops_exams/movie-service
-                    # Construction de l'image Cast
-                    docker build -t $DOCKERHUB_CREDENTIALS/$CAST_IMAGE:$VERSION Jenkins_devops_exams/cast-service
-                    sleep 6
-                    '''
-                }
-            }
-        }
-
-        stage('Docker Run'){
-            steps {
-                script {
-                    sh '''
-                    docker run -d -p 8091:80 --name jenkins $DOCKERHUB_CREDENTIALS/$MOVIE_IMAGE:$VERSION
-                    docker run -d -p 8092:81 --name jenkins-cast $DOCKERHUB_CREDENTIALS/$CAST_IMAGE:$VERSION
-                    sleep 10
-                    '''
-                }
-            }
-        }
-
-        stage('Test Acceptance'){
-            steps {
-                script {
-                    sh '''
-                    curl localhost:80
-                    curl localhost:81
-                    '''
-                }
-            }
-        }
-
-        stage('Docker Push'){
-            steps {
-                script {
-                    sh '''
+                    # Build des images
+                    docker build -t $DOCKERHUB_CREDENTIALS/$MOVIE_IMAGE:$VERSION ${WORKSPACE}/movie-service
+                    docker build -t $DOCKERHUB_CREDENTIALS/$CAST_IMAGE:$VERSION ${WORKSPACE}/cast-service
+                    
+                    # Login et push
                     docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
                     docker push $DOCKERHUB_CREDENTIALS/$MOVIE_IMAGE:$VERSION
                     docker push $DOCKERHUB_CREDENTIALS/$CAST_IMAGE:$VERSION
@@ -63,85 +28,44 @@ pipeline {
             }
         }
 
-        stage('Deploiement en dev'){
-            steps {
-                script {
-                    sh '''
-                    rm -Rf .kube
-                    mkdir .kube
-                    cat $KUBECONFIG > .kube/config
-                    cp fastapi/values.yaml values.yml
-                    sed -i "s+tag.*+tag: ${VERSION}+g" values.yml
-                    helm upgrade --install app fastapi --values=values.yml --namespace dev
-                    '''
-                }
-            }
-        }
-
-        stage('Synchroniser avec ArgoCD pour Dev'){
+        stage('Update Version & Sync Dev'){
             steps {
                 script {
                     sh '''
                     argocd login ${ARGOCD_SERVER} --username admin --password ${ARGOCD_TOKEN} --insecure
-                    argocd app sync app-dev --namespace dev
-                    argocd app wait app-dev --health --timeout 300
+                    argocd app set movie-service -p image.tag=${VERSION}
+                    argocd app set cast-service -p image.tag=${VERSION}
+                    argocd app sync movie-service cast-service
+                    argocd app wait movie-service cast-service --health --timeout 300
                     '''
                 }
             }
         }
 
-        stage('Deploiement en staging'){
+        stage('Sync Staging'){
             steps {
                 script {
                     sh '''
-                    rm -Rf .kube
-                    mkdir .kube
-                    cat $KUBECONFIG > .kube/config
-                    cp fastapi/values.yaml values.yml
-                    sed -i "s+tag.*+tag: ${VERSION}+g" values.yml
-                    helm upgrade --install app fastapi --values=values.yml --namespace staging
+                    argocd app set movie-service-staging -p image.tag=${VERSION}
+                    argocd app set cast-service-staging -p image.tag=${VERSION}
+                    argocd app sync movie-service-staging cast-service-staging
+                    argocd app wait movie-service-staging cast-service-staging --health --timeout 300
                     '''
                 }
             }
         }
 
-        stage('Synchroniser avec ArgoCD pour Staging'){
-            steps {
-                script {
-                    sh '''
-                    argocd login ${ARGOCD_SERVER} --username admin --password ${ARGOCD_TOKEN} --insecure
-                    argocd app sync app-staging --namespace staging
-                    argocd app wait app-staging --health --timeout 300
-                    '''
-                }
-            }
-        }
-
-        stage('Deploiement en prod'){
+        stage('Sync Production'){
             steps {
                 timeout(time: 15, unit: "MINUTES") {
                     input message: 'Do you want to deploy in production?', ok: 'Yes'
                 }
                 script {
                     sh '''
-                    rm -Rf .kube
-                    mkdir .kube
-                    cat $KUBECONFIG > .kube/config
-                    cp fastapi/values.yaml values.yml
-                    sed -i "s+tag.*+tag: ${VERSION}+g" values.yml
-                    helm upgrade --install app fastapi --values=values.yml --namespace prod
-                    '''
-                }
-            }
-        }
-
-        stage('Synchroniser avec ArgoCD pour Production'){
-            steps {
-                script {
-                    sh '''
-                    argocd login ${ARGOCD_SERVER} --username admin --password ${ARGOCD_TOKEN} --insecure
-                    argocd app sync app-prod --namespace prod
-                    argocd app wait app-prod --health --timeout 300
+                    argocd app set movie-service-prod -p image.tag=${VERSION}
+                    argocd app set cast-service-prod -p image.tag=${VERSION}
+                    argocd app sync movie-service-prod cast-service-prod
+                    argocd app wait movie-service-prod cast-service-prod --health --timeout 300
                     '''
                 }
             }
@@ -152,7 +76,6 @@ pipeline {
         always {
             sh '''
             docker logout
-            rm -rf .kube
             argocd logout ${ARGOCD_SERVER}
             '''
         }

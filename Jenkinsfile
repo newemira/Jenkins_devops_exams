@@ -1,6 +1,7 @@
 pipeline {
     environment {
         DOCKER_ID = credentials('dockerhub-cred').username
+        DOCKER_PASS = credentials('dockerhub-cred').password
         MOVIE_IMAGE = "newemira/movie-service"
         CAST_IMAGE = "newemira/cast-service"
         VERSION = "${BUILD_NUMBER}"

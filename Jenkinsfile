@@ -18,8 +18,10 @@ pipeline {
                 script {
                     sh '''
                     docker rm -f jenkins || true
-                    docker build -t $DOCKERHUB_CREDENTIALS/$MOVIE_IMAGE:$VERSION .
-                    docker build -t $DOCKERHUB_CREDENTIALS/$CAST_IMAGE:$VERSION .
+                    # Construction de l'image Movie
+                    docker build -t $DOCKERHUB_CREDENTIALS/$MOVIE_IMAGE:$VERSION Jenkins_devops_exams/movie-service
+                    # Construction de l'image Cast
+                    docker build -t $DOCKERHUB_CREDENTIALS/$CAST_IMAGE:$VERSION Jenkins_devops_exams/cast-service
                     sleep 6
                     '''
                 }
@@ -30,8 +32,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    docker run -d -p 80:80 --name jenkins $DOCKERHUB_CREDENTIALS/$MOVIE_IMAGE:$VERSION
-                    docker run -d -p 81:81 --name jenkins-cast $DOCKERHUB_CREDENTIALS/$CAST_IMAGE:$VERSION
+                    docker run -d -p 8091:80 --name jenkins $DOCKERHUB_CREDENTIALS/$MOVIE_IMAGE:$VERSION
+                    docker run -d -p 8092:81 --name jenkins-cast $DOCKERHUB_CREDENTIALS/$CAST_IMAGE:$VERSION
                     sleep 10
                     '''
                 }

@@ -8,12 +8,7 @@ pipeline {
         ARGOCD_SERVER = "localhost:8082"
     }
 
-    agent {
-        docker {
-            image 'docker:dind'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     stages {
         stage('Docker Build & Push'){

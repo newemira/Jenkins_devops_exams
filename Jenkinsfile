@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        MOVIE_IMAGE = "newemira/movie-service"
-        CAST_IMAGE = "newemira/cast-service"
+        MOVIE_IMAGE = "movie-service"
+        CAST_IMAGE = "cast-service"
         VERSION = "${BUILD_NUMBER}"
         ARGOCD_TOKEN = credentials('argocd-auth-token')
         ARGOCD_SERVER = "localhost:8082"

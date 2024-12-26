@@ -4,7 +4,7 @@ pipeline {
     environment {
         MOVIE_IMAGE = "movie-service"
         CAST_IMAGE = "cast-service"
-        VERSION = "${BUILD_NUMBER}"
+        DOCKER_TAG =  "v.${BUILD_ID}.0"
         ARGOCD_TOKEN = credentials('argocd-auth-token')
         ARGOCD_SERVER = "localhost:8082"
     }
@@ -15,14 +15,14 @@ pipeline {
                 stage('Build Movie Service') {
                     steps {
                         dir('movie-service') {
-                            sh "docker build -t ${MOVIE_IMAGE}:${VERSION} ."
+                            sh "docker build -t ${MOVIE_IMAGE}:$DOCKER_TAG ."
                         }
                     }
                 }
                 stage('Build Cast Service') {
                     steps {
                         dir('cast-service') {
-                            sh "docker build -t ${CAST_IMAGE}:${VERSION} ."
+                            sh "docker build -t ${CAST_IMAGE}:$DOCKER_TAG ."
                         }
                     }
                 }

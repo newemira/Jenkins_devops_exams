@@ -34,7 +34,9 @@ pipeline {
             steps {
                 script {
                         sh """
-                        docker run -d -p 80:80 --name movie-service ${DOCKER_ID}/${MOVIE_IMAGE}:$DOCKER_TAG
+                        docker run -d -p 80:80 --name movie-service \
+                           -e DATABASE_URI="postgresql://cast_db_username:cast_db_password@cast-db-service/cast_db_dev" \
+                           ${DOCKER_ID}/${MOVIE_IMAGE}:${DOCKER_TAG}
                         docker run -d -p 81:81 --name cast-service ${DOCKER_ID}/${CAST_IMAGE}:$DOCKER_TAG
                         sleep 10
                         """

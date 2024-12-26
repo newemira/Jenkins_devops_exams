@@ -32,41 +32,44 @@ pipeline {
         stage('Docker run'){
             steps {
                 script {
-                    // Utilisez withCredentials pour injecter les credentials dans l'environnement
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_ID', passwordVariable: 'DOCKER_PASS')]) {
                         sh """
-                        docker run -d -p 8080:80 --name movie-service ${DOCKER_ID}/${MOVIE_IMAGE}:${VERSION}
-                        docker run -d -p 8081:80 --name cast-service ${DOCKER_ID}/${CAST_IMAGE}:${VERSION}
+                        docker run -d -p 80:80 --name movie-service ${DOCKER_ID}/${MOVIE_IMAGE}:$DOCKER_TAG
+                        docker run -d -p 81:81 --name cast-service ${DOCKER_ID}/${CAST_IMAGE}:$DOCKER_TAG
                         sleep 10
                         """
                     }
                 }
             }
-        }
+        
 
         stage('Test Acceptance'){
             steps {
                 script {
                     sh """
-                    curl localhost:8080  # Vérification du movie-service
-                    curl localhost:8081  # Vérification du cast-service
+                    curl localhost:80  # Vérification du movie-service
+                    curl localhost:81  # Vérification du cast-service
                     """
                 }
             }
         }    
 
         stage('Docker Push'){
+            environment
+            {
+                DOCKER_PASS = credentials("DOCKER_HUB_PASS") // we retrieve  docker password from secret text called docker_hub_pass saved on jenkins
+            }
+
             steps {
+
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-cred', usernameVariable: 'DOCKER_ID', passwordVariable: 'DOCKER_PASS')]) {
-                        sh """
-                        docker login -u ${DOCKER_ID} -p ${DOCKER_PASS}
-                        docker push ${DOCKER_ID}/${MOVIE_IMAGE}:${VERSION}
-                        docker push ${DOCKER_ID}/${CAST_IMAGE}:${VERSION}
-                        """
-                    }
+                sh '''
+                docker login -u $DOCKER_ID -p $DOCKER_PASS
+                docker push ${DOCKER_ID}/${MOVIE_IMAGE}:$DOCKER_TAG
+                docker push ${DOCKER_ID}/${CAST_IMAGE}:$DOCKER_TAG
+                '''
                 }
             }
+
         }
 
         stage('Update Version & Sync Dev'){
@@ -74,8 +77,8 @@ pipeline {
                 script {
                     sh '''
                     argocd login ${ARGOCD_SERVER} --username admin --password ${ARGOCD_TOKEN} --insecure
-                    argocd app set movie-service -p image.tag=${VERSION}
-                    argocd app set cast-service -p image.tag=${VERSION}
+                    argocd app set movie-service -p image.tag=$DOCKER_TAG
+                    argocd app set cast-service -p image.tag=$DOCKER_TAG
                     argocd app sync movie-service cast-service
                     argocd app wait movie-service cast-service --health --timeout 300
                     '''
@@ -87,8 +90,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    argocd app set movie-service-staging -p image.tag=${VERSION}
-                    argocd app set cast-service-staging -p image.tag=${VERSION}
+                    argocd app set movie-service-staging -p image.tag=$DOCKER_TAG
+                    argocd app set cast-service-staging -p image.tag=$DOCKER_TAG
                     argocd app sync movie-service-staging cast-service-staging
                     argocd app wait movie-service-staging cast-service-staging --health --timeout 300
                     '''
@@ -103,8 +106,8 @@ pipeline {
                 }
                 script {
                     sh '''
-                    argocd app set movie-service-prod -p image.tag=${VERSION}
-                    argocd app set cast-service-prod -p image.tag=${VERSION}
+                    argocd app set movie-service-prod -p image.tag=$DOCKER_TAG
+                    argocd app set cast-service-prod -p image.tag=$DOCKER_TAG
                     argocd app sync movie-service-prod cast-service-prod
                     argocd app wait movie-service-prod cast-service-prod --health --timeout 300
                     '''

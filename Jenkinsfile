@@ -118,10 +118,12 @@ pipeline {
 
     post {
         always {
-            sh '''
-            docker logout
-            argocd logout ${ARGOCD_SERVER}
-            '''
+            node {  // Ajout du bloc node ici
+                sh '''
+                docker logout
+                argocd logout ${ARGOCD_SERVER}
+                '''
+            }
         }
         success {
             echo 'Pipeline completed successfully!'
@@ -130,4 +132,5 @@ pipeline {
             echo 'Pipeline failed!'
         }
     }
+    
 }

@@ -46,9 +46,9 @@ pipeline {
         stage('Test Acceptance'){
             steps {
                 script {
-                    sh """
+                    sh '''
                     docker ps
-                    """
+                    '''
                 }
             }
         }    

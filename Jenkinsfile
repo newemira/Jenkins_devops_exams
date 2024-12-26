@@ -115,22 +115,5 @@ pipeline {
             }
         }
     }
-
-    post {
-        always {
-            node {  // Ajout du bloc node ici
-                sh '''
-                docker logout
-                argocd logout ${ARGOCD_SERVER}
-                '''
-            }
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
-        }
-    }
     
 }

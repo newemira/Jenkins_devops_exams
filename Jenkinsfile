@@ -88,20 +88,20 @@ stage('Deploiement en dev'){
                 '''
                 }
             }    
-
         }
 stage('Deploiement en staging'){
         environment
         {
-        KUBECONFIG = credentials("config") // we retrieve  kubeconfig from secret file called config saved on jenkins
+        KUBECONFIG = credentials("config")
         }
             steps {
                 script {
                 sh '''
                 rm -Rf .kube
-                mkdir .kube
-                ls
-                cat $KUBECONFIG > .kube/config
+                mkdir -p .kube
+                cat "$KUBECONFIG" > .kube/config
+                chmod 600 .kube/config
+                kubectl cluster-info
                 cp charts/values.yaml values.yml
                 cat values.yml
                 sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
@@ -109,26 +109,23 @@ stage('Deploiement en staging'){
                 '''
                 }
             }
-
         }
 stage('Deploiement en prod'){
         environment
         {
-        KUBECONFIG = credentials("config") // we retrieve  kubeconfig from secret file called config saved on jenkins
+        KUBECONFIG = credentials("config")
         }
             steps {
-            // Create an Approval Button with a timeout of 15minutes.
-            // this require a manuel validation in order to deploy on production environment
-                    timeout(time: 15, unit: "MINUTES") {
-                        input message: 'Do you want to deploy in production ?', ok: 'Yes'
-                    }
-
+                timeout(time: 15, unit: "MINUTES") {
+                    input message: 'Do you want to deploy in production ?', ok: 'Yes'
+                }
                 script {
                 sh '''
                 rm -Rf .kube
-                mkdir .kube
-                ls
-                cat $KUBECONFIG > .kube/config
+                mkdir -p .kube
+                cat "$KUBECONFIG" > .kube/config
+                chmod 600 .kube/config
+                kubectl cluster-info
                 cp charts/values.yaml values.yml
                 cat values.yml
                 sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
@@ -136,9 +133,7 @@ stage('Deploiement en prod'){
                 '''
                 }
             }
-
         }  
 
 }
 }
-    

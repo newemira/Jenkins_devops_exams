@@ -81,8 +81,13 @@ stage('Deploiement en dev'){
                 sh '''
                 rm -Rf .kube
                 mkdir -p .kube
-                cp "$KUBECONFIG" .kube/config
+                echo "$KUBECONFIG" | tr -d '"' > .kube/config
                 chmod 600 .kube/config
+                if ! grep -q "apiVersion: v1" .kube/config; then
+                    echo "Error: Invalid kubeconfig file"
+                    cat .kube/config
+                    exit 1
+                fi
                 cp charts/values.yaml values.yml
                 cat values.yml
                 sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
@@ -109,7 +114,7 @@ stage('Deploiement en staging'){
                 cp charts/values.yaml values.yml
                 cat values.yml
                 sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
-                helm upgrade --install app fastapiapp --values=values.yml --namespace staging
+                helm install fastapiapp /home/ubuntu/Jenkins_devops_exams/charts -n staging
                 '''
                 }
             }
@@ -133,7 +138,7 @@ stage('Deploiement en prod'){
                 cp charts/values.yaml values.yml
                 cat values.yml
                 sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
-                helm upgrade --install app fastapiapp --values=values.yml --namespace prod
+                helm install fastapiapp /home/ubuntu/Jenkins_devops_exams/charts -n prod
                 '''
                 }
             }

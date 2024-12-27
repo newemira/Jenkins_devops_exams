@@ -73,6 +73,10 @@ pipeline {
         }
 
         stage('Update Version & Sync Dev'){
+            environment
+            {
+                ARGOCD_TOKEN = credentials("ARGOCD_TOKEN") // we retrieve ARGOCD_TOKEN password from secret text called ARGOCD_TOKEN saved on jenkins
+            }
             steps {
                 script {
                     sh '''

@@ -6,8 +6,7 @@ pipeline {
         CAST_IMAGE = "cast-service"
         DOCKER_ID = "newemira"
         DOCKER_TAG =  "latest"
-        ARGOCD_TOKEN = credentials('ARGOCD_TOKEN')
-        ARGOCD_SERVER = "127.0.0.1:8082"
+        
     }
 
     stages {

@@ -72,52 +72,76 @@ pipeline {
 
         }
 
-        stage('Update Version & Sync Dev'){
-            environment
-            {
-                ARGOCD_TOKEN = credentials("ARGOCD_TOKEN") // we retrieve ARGOCD_TOKEN password from secret text called ARGOCD_TOKEN saved on jenkins
-            }
+    stage('Deploiement en dev'){
+        environment
+        {
+        KUBECONFIG = credentials("config") // we retrieve  kubeconfig from secret file called config saved on jenkins
+        }
             steps {
                 script {
-                    sh '''
-                    argocd login ${ARGOCD_SERVER} --username ahlem --password ${ARGOCD_TOKEN} --insecure
-                    argocd app set movie-service -p image.tag=$DOCKER_TAG
-                    argocd app set cast-service -p image.tag=$DOCKER_TAG
-                    argocd app sync movie-service cast-service
-                    argocd app wait movie-service cast-service --health --timeout 300
-                    '''
+                sh '''
+                rm -Rf .kube
+                mkdir .kube
+                ls
+                cat $KUBECONFIG > .kube/config
+                cp fastapi/values.yaml values.yml
+                cat values.yml
+                sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
+                helm upgrade --install app fastapi --values=values.yml --namespace dev
+                '''
                 }
             }
+
+        }
+stage('Deploiement en staging'){
+        environment
+        {
+        KUBECONFIG = credentials("config") // we retrieve  kubeconfig from secret file called config saved on jenkins
+        }
+            steps {
+                script {
+                sh '''
+                rm -Rf .kube
+                mkdir .kube
+                ls
+                cat $KUBECONFIG > .kube/config
+                cp fastapi/values.yaml values.yml
+                cat values.yml
+                sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
+                helm upgrade --install app fastapi --values=values.yml --namespace staging
+                '''
+                }
+            }
+
+        }
+  stage('Deploiement en prod'){
+        environment
+        {
+        KUBECONFIG = credentials("config") // we retrieve  kubeconfig from secret file called config saved on jenkins
+        }
+            steps {
+            // Create an Approval Button with a timeout of 15minutes.
+            // this require a manuel validation in order to deploy on production environment
+                    timeout(time: 15, unit: "MINUTES") {
+                        input message: 'Do you want to deploy in production ?', ok: 'Yes'
+                    }
+
+                script {
+                sh '''
+                rm -Rf .kube
+                mkdir .kube
+                ls
+                cat $KUBECONFIG > .kube/config
+                cp fastapi/values.yaml values.yml
+                cat values.yml
+                sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
+                helm upgrade --install app fastapi --values=values.yml --namespace prod
+                '''
+                }
+            }
+
         }
 
-        stage('Sync Staging'){
-            steps {
-                script {
-                    sh '''
-                    argocd app set movie-service-staging -p image.tag=$DOCKER_TAG
-                    argocd app set cast-service-staging -p image.tag=$DOCKER_TAG
-                    argocd app sync movie-service-staging cast-service-staging
-                    argocd app wait movie-service-staging cast-service-staging --health --timeout 300
-                    '''
-                }
-            }
-        }
-
-        stage('Sync Production'){
-            steps {
-                timeout(time: 15, unit: "MINUTES") {
-                    input message: 'Do you want to deploy in production?', ok: 'Yes'
-                }
-                script {
-                    sh '''
-                    argocd app set movie-service-prod -p image.tag=$DOCKER_TAG
-                    argocd app set cast-service-prod -p image.tag=$DOCKER_TAG
-                    argocd app sync movie-service-prod cast-service-prod
-                    argocd app wait movie-service-prod cast-service-prod --health --timeout 300
-                    '''
-                }
-            }
-        }
-    }
-    
 }
+}
+    

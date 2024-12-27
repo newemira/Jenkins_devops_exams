@@ -4,7 +4,7 @@
 
 movieService:
   name: movie-service
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: newemira/movie-service
     pullPolicy: IfNotPresent
@@ -20,7 +20,7 @@ movieService:
 
 castService:
   name: cast-service
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: newemira/cast-service
     pullPolicy: IfNotPresent

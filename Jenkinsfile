@@ -76,7 +76,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    argocd login ${ARGOCD_SERVER} --username admin --password ${ARGOCD_TOKEN} --insecure
+                    argocd login ${ARGOCD_SERVER} --username ahlem --password ${ARGOCD_TOKEN} --insecure
                     argocd app set movie-service -p image.tag=$DOCKER_TAG
                     argocd app set cast-service -p image.tag=$DOCKER_TAG
                     argocd app sync movie-service cast-service

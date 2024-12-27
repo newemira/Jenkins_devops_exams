@@ -79,7 +79,6 @@ stage('Deploiement en dev'){
             steps {
                 script {
                 sh '''
-                sudo chmod 664 /etc/rancher/k3s/k3s.yaml
                 echo "$KUBECONFIG" > .kube/config
                 kubectl cluster-info --kubeconfig .kube/config
                 cp charts/values.yaml values.yml
@@ -99,7 +98,6 @@ stage('Deploiement en staging'){
             steps {
                 script {
                 sh '''
-                sudo chmod 664 /etc/rancher/k3s/k3s.yaml
                 rm -Rf .kube
                 mkdir .kube
                 ls
@@ -127,7 +125,6 @@ stage('Deploiement en prod'){
 
                 script {
                 sh '''
-                sudo chmod 664 /etc/rancher/k3s/k3s.yaml
                 rm -Rf .kube
                 mkdir .kube
                 ls

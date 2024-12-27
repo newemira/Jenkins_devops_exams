@@ -79,14 +79,13 @@ stage('Deploiement en dev'){
             steps {
                 script {
                 sh '''
-                rm -Rf .kube
-                mkdir .kube
-                ls
-                cat $KUBECONFIG > .kube/config
+                sudo chmod 664 /etc/rancher/k3s/k3s.yaml
+                echo "$KUBECONFIG" > .kube/config
+                kubectl cluster-info --kubeconfig .kube/config
                 cp charts/values.yaml values.yml
                 cat values.yml
                 sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
-                helm upgrade --install app fastapiapp --values=values.yml --namespace dev
+                helm install fastapiapp /home/ubuntu/Jenkins_devops_exams/charts -n dev
                 '''
                 }
             }    
@@ -100,6 +99,7 @@ stage('Deploiement en staging'){
             steps {
                 script {
                 sh '''
+                sudo chmod 664 /etc/rancher/k3s/k3s.yaml
                 rm -Rf .kube
                 mkdir .kube
                 ls
@@ -127,6 +127,7 @@ stage('Deploiement en prod'){
 
                 script {
                 sh '''
+                sudo chmod 664 /etc/rancher/k3s/k3s.yaml
                 rm -Rf .kube
                 mkdir .kube
                 ls

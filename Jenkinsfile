@@ -71,7 +71,7 @@ pipeline {
 
         }
 
-    stage('Deploiement en dev'){
+stage('Deploiement en dev'){
         environment
         {
         KUBECONFIG = credentials("config") // we retrieve  kubeconfig from secret file called config saved on jenkins
@@ -89,7 +89,7 @@ pipeline {
                 helm upgrade --install app fastapiapp --values=values.yml --namespace dev
                 '''
                 }
-            }
+            }    
 
         }
 stage('Deploiement en staging'){
@@ -113,7 +113,7 @@ stage('Deploiement en staging'){
             }
 
         }
-  stage('Deploiement en prod'){
+stage('Deploiement en prod'){
         environment
         {
         KUBECONFIG = credentials("config") // we retrieve  kubeconfig from secret file called config saved on jenkins
@@ -139,7 +139,7 @@ stage('Deploiement en staging'){
                 }
             }
 
-        }
+        }  
 
 }
 }

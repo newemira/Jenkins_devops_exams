@@ -74,16 +74,19 @@ pipeline {
 stage('Deploiement en dev'){
         environment
         {
-        KUBECONFIG = credentials("config") // we retrieve  kubeconfig from secret file called config saved on jenkins
+        KUBECONFIG = credentials("config")
         }
             steps {
                 script {
                 sh '''
-                echo "$KUBECONFIG" > .kube/config
-                kubectl cluster-info --kubeconfig .kube/config
+                rm -Rf .kube
+                mkdir -p .kube
+                echo "$KUBECONFIG" | base64 -d > .kube/config
+                chmod 600 .kube/config
                 cp charts/values.yaml values.yml
                 cat values.yml
                 sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
+                export KUBECONFIG=.kube/config
                 helm install fastapiapp /home/ubuntu/Jenkins_devops_exams/charts -n dev
                 '''
                 }

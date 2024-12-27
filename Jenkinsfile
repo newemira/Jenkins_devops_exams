@@ -81,12 +81,13 @@ stage('Deploiement en dev'){
                 sh '''
                 rm -Rf .kube
                 mkdir -p .kube
-                echo "$KUBECONFIG" | base64 -d > .kube/config
+                cp "$KUBECONFIG" .kube/config
                 chmod 600 .kube/config
                 cp charts/values.yaml values.yml
                 cat values.yml
                 sed -i "s+tag.*+tag: ${DOCKER_TAG}+g" values.yml
                 export KUBECONFIG=.kube/config
+                kubectl config view
                 helm install fastapiapp /home/ubuntu/Jenkins_devops_exams/charts -n dev
                 '''
                 }

@@ -16,9 +16,6 @@ RUN pip install -r /app/requirements.txt \
 
 COPY . /app/
 
-# Définir le chemin Python
-ENV PYTHONPATH=/app
-
 # Exposer le port d'écoute de l'application
 EXPOSE 8000
 
